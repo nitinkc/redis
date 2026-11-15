@@ -1,0 +1,112 @@
+site_name: Redis POC
+site_description: Redis-backed POC — backend microservice, test UI, and documentation
+strict: true
+
+repo_url: https://github.com/nitinkc/redis
+repo_name: nitinkc/redis
+
+theme:
+  name: material
+  features:
+    # Navigation
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top           # Back-to-top button
+    - navigation.footer        # Prev/Next page links
+    # navigation.instant disabled — breaks live reload (re-enable for production builds)
+    # - navigation.instant
+    # - navigation.instant.progress
+    # Search
+    - search.suggest
+    - search.highlight
+    - search.share
+    # Content
+    - content.code.copy
+    - content.code.annotate    # (1) style code annotations
+    - content.tabs.link        # Sync tabs across page
+    - content.tooltips
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: brown
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: brown
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search:
+      lang: en
+  - mkdocs_quiz
+  - mermaid2
+  - glightbox
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      use_pygments: true
+      guess_lang: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      title: On this page
+  - abbr
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets:
+      base_path: docs
+  - admonition
+  - tables
+  - fenced_code
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+
+nav:
+  - Home: index.md
+  - Learning path:
+      - 1 · The big picture: articles/01-big-picture.md
+      - 2 · Run it locally: articles/02-run-locally.md
+      - 3 · Follow a request: articles/03-request-flow.md
+      - 4 · Redis data & TTL: articles/04-redis-data.md
+      - 5 · Health vs readiness: articles/05-health-readiness.md
+      - 6 · Explore the API: articles/06-explore-api.md
+      - 7 · Frontend tour: articles/07-frontend.md
+      - 8 · Two regions: articles/08-multi-region.md
+      - 9 · Gotchas & limits: articles/09-gotchas.md
+  - Reference:
+      - API guide: articles/api-guide.md
+      - Swagger UI: articles/swagger.md
+      - Configuration: articles/configuration.md
+      - Frontend architecture: articles/frontend-architecture.md
+      - Frontend testing guide: articles/frontend-testing.md
+      - Frontend deployment: articles/frontend-deployment.md
+      - Maintaining documentation: articles/documentation.md

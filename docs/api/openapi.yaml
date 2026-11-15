@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: POC Backend API
+  version: 1.0.0
+  description: >-
+    Express and Redis demonstration API. No authentication is implemented.
+    Use only synthetic data on trusted networks. Regions have independent data.
+servers:
+  - url: http://localhost:8080
+    description: Local backend or Kubernetes port-forward
+  - url: http://127.0.0.1:8080
+    description: Local loopback alternative
+tags:
+  - name: Health
+  - name: Metadata
+  - name: Key-value
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [Health]
+      summary: Check HTTP process liveness
+      description: Does not check Redis connectivity.
+      responses:
+        '200':
+          description: Process is responding
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+  /ready:
+    get:
+      operationId: getReadiness
+      tags: [Health]
+      summary: Read the process-local Redis readiness flag
+      description: Not a per-request Redis ping; can lag connection failures.
+      responses:
+        '200':
+          description: Redis-ready flag is true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+              example: {ready: true}
+        '503':
+          description: Redis-ready flag is false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+              example: {ready: false}
+  /api/info:
+    get:
+      operationId: getServiceInfo
+      tags: [Metadata]
+      summary: Identify the serving process and region
+      responses:
+        '200':
+          description: Service metadata, available independently of Redis
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [service, version, region, cluster, pod, startedAt, redis]
+                properties:
+                  service:
+                    type: string
+                    enum: [poc-backend]
+                  version:
+                    type: string
+                    example: 1.0.0
+                  region:
+                    type: string
+                    example: local
+                  cluster:
+                    type: string
+                    example: docker-compose
+                  pod:
+                    type: string
+                    example: poc-backend-demo
+                  startedAt:
+                    type: string
+                    format: date-time
+                  redis:
+                    type: string
+                    enum: [connected, disconnected]
+  /api/kv:
+    get:
+      operationId: listKeys
+      tags: [Key-value]
+      summary: List all Redis keys
+      description: Uses KEYS *, with no pagination. Suitable only for small demo datasets.
+      responses:
+        '200':
+          description: Current keys, with no guaranteed order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [keys]
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: string
+              example: {keys: [greeting]}
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/RedisError'
+  /api/kv/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        description: Redis key; URL-encode special characters.
+        schema:
+          type: string
+        example: greeting
+    get:
+      operationId: getValue
+      tags: [Key-value]
+      summary: Read a string value
+      responses:
+        '200':
+          description: Key exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyValue'
+        '404':
+          description: Key does not exist or has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example: {error: key not found}
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/RedisError'
+    put:
+      operationId: setValue
+      tags: [Key-value]
+      summary: Create or replace a key
+      description: >-
+        Converts value using JavaScript String(value). Always returns 201 on success,
+        including replacement. Omitting TTL clears any prior expiration. Use a positive
+        integer TTL; the implementation does not validate it, ignores numeric zero,
+        and may return 500 or 503 for invalid truthy TTL values.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                value:
+                  description: Any JSON value, converted to a string rather than JSON-serialized.
+                  nullable: true
+                ttlSeconds:
+                  description: Recommended input is a positive integer; not enforced by the application.
+                  type: number
+            example: {value: hello, ttlSeconds: 60}
+      responses:
+        '201':
+          description: Value stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyValue'
+        '400':
+          description: Missing value field
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example: {error: 'body must contain "value"'}
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/RedisError'
+    delete:
+      operationId: deleteKey
+      tags: [Key-value]
+      summary: Delete a key if present
+      responses:
+        '200':
+          description: Number of removed keys; missing keys are not errors
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted:
+                    type: integer
+                    enum: [0, 1]
+              example: {deleted: 1}
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/RedisError'
+components:
+  schemas:
+    Readiness:
+      type: object
+      required: [ready]
+      properties:
+        ready:
+          type: boolean
+    KeyValue:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+          example: greeting
+        value:
+          type: string
+          example: hello
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+  responses:
+    InternalError:
+      description: >-
+        Unhandled application/client error. The error handler also maps JSON parser
+        errors to 500 rather than preserving their usual 400/413 status.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RedisError:
+      description: >-
+        Error message matches redis, ECONNREFUSED, or closed (case-insensitive).
+        Other Redis-related errors can be 500; commands may wait during reconnect.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

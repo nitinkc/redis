@@ -1,0 +1,40 @@
+<mxfile host="Electron">
+  <diagram id="health-readiness" name="Health vs readiness">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="k8s" value="Kubelet / probe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="130" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="health" value="GET /health&lt;br&gt;&lt;b&gt;always 200&lt;/b&gt;&lt;br&gt;never checks Redis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="ready" value="GET /ready&lt;br&gt;&lt;b&gt;200 or 503&lt;/b&gt;&lt;br&gt;reads redisReady flag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="280" y="290" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="restart" value="liveness fail ⇒ restart container" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="560" y="125" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="traffic" value="readiness fail ⇒ pull pod from Service endpoints (no restart)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="290" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" value="livenessProbe" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="k8s" target="health">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="readinessProbe" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="k8s" target="ready">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="health" target="restart">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ready" target="traffic">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="caveat" value="Caveat: flag set on Redis 'ready', cleared on 'end' — not cleared on every reconnect; commands queue during outages (no command timeout)" style="text;html=1;align=left;fontSize=11;fontColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="410" width="740" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: poc-backend
+  template:
+    metadata:
+      labels:
+        app: poc-backend
+    spec:
+      containers:
+        - name: backend
+          # Replace with your Artifactory path, or override via overlay `images:`
+          image: example.artifactory.com/docker/poc-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_URL
+              value: redis://poc-redis:6379
+            - name: REGION
+              value: unset
+            - name: CLUSTER_NAME
+              value: unset
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-backend
+spec:
+  selector:
+    app: poc-backend
+  ports:
+    - port: 8080
+      targetPort: 8080

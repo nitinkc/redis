@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poc-ui
+  template:
+    metadata:
+      labels:
+        app: poc-ui
+    spec:
+      containers:
+        - name: ui
+          # Replace with your Artifactory path, or override via overlay `images:`
+          image: example.artifactory.com/docker/poc-ui:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKEND_URL
+              value: http://poc-backend:8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-ui
+spec:
+  type: LoadBalancer
+  selector:
+    app: poc-ui
+  ports:
+    - port: 80
+      targetPort: 8080

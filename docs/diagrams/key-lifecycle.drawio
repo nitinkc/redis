@@ -1,0 +1,48 @@
+<mxfile host="Electron">
+  <diagram id="key-lifecycle" name="Key lifecycle">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="start" value="" style="ellipse;html=1;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="24" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="live" value="&lt;b&gt;key exists&lt;/b&gt;&lt;br&gt;GET → 200 + value" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="220" y="180" width="150" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="ttl" value="&lt;b&gt;key exists + TTL&lt;/b&gt;&lt;br&gt;EX countdown running" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="450" y="80" width="160" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="gone" value="&lt;b&gt;key gone&lt;/b&gt;&lt;br&gt;GET → 404" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="700" y="180" width="130" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="a1" value="PUT without ttlSeconds" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="start" target="live">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" value="PUT with ttlSeconds → SET EX" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="live" target="ttl">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" value="expiry fires" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ttl" target="gone">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a4" value="DELETE" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="live" target="gone">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a5" value="Redis restart / no volume" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;fontColor=#b85450;" edge="1" parent="1" source="live" target="gone">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="295" y="320"/>
+              <mxPoint x="765" y="320"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a6" value="PUT again without TTL clears expiry" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;fontColor=#d6b656;" edge="1" parent="1" source="ttl" target="live">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="warn" value="Gotcha: PUT without ttlSeconds on a TTL'd key removes the expiry (plain SET semantics)" style="text;html=1;align=left;fontSize=11;fontColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="640" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
