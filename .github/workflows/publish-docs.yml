@@ -36,12 +36,12 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv pip install --system -r requirements-docs.txt
 
       - name: Build docs
         # --strict turns the link/anchor warnings configured in mkdocs.yml into
         # build failures, so a broken cross-reference can't reach the site.
-        run: uv run --frozen mkdocs build --strict
+        run: mkdocs build --strict
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
